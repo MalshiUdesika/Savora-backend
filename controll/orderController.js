@@ -72,29 +72,29 @@ export async function createOrder(req, res) {
 
             const item = req.body.items[i]
 
-            const product = await Item.findOne({ itemId : item.itemId })
+            const Item = await Item.findOne({ itemId : item.itemId })
 
-            if(product == null){
+            if(Item == null){
 
-                res.status(404).json({ message : "Product with id " + item.itemId + " not found. Please remove it from your cart and try again." })
+                res.status(404).json({ message : "Item with id " + item.itemId + " not found. Please remove it from your cart and try again." })
                 return
             }
 
-            if(product.isVisible == false){
-                res.status(404).json({ message : "Product with id " + item.productId + " is not available. Please remove it from your cart and try again." })
+            if(Item.isVisible == false){
+                res.status(404).json({ message : "Item with id " + item.itemId + " is not available. Please remove it from your cart and try again." })
                 return
             }
 
             orderData.items.push({
-                itemId : product.itemId,
-                name : product.name,
-                price : product.price,
-                labelledPrice : product.labelledPrice,
-                image : product.images[0],
+                itemId : Item.itemId,
+                name : Item.name,
+                price : Item.price,
+                labelledPrice : Item.labelledPrice,
+                image : Item.images[0],
                 qty : item.qty
             })
 
-            orderData.total += product.price * item.qty
+            orderData.total += Item.price * item.qty
         }
         
         const order = new Order(orderData);
