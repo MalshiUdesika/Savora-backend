@@ -1,7 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 
-let mongoURI = "mongodb+srv://admin:1234@cluster0.ogiafsm.mongodb.net/?appName=Cluster0"
+const mongoURI = process.env.mongoURI
 
 mongoose.connect(mongoURI);
 
