@@ -43,7 +43,7 @@ const userSchema = new mongoose.Schema({
     },
 
     image : {
-        type : String, // type eka wardi nisai prashne thibbe
+        type : String, 
         default : "/images/default-profile.png",
         required : true
     }
