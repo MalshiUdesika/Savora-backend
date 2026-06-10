@@ -2,20 +2,28 @@
   "name": "savora-backend",
   "version": "1.0.0",
   "main": "index.js",
-  "type": "module",
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "nodemon index.js",
+    "dev": "nodemon server.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Malshi",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-validator": "^7.3.2",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "8.10",
-    "nodemailer": "^8.0.7",
+    "morgan": "^1.11.0",
+    "multer": "^2.1.1",
+    "nodemailer": "^8.0.10",
+    "otp-generator": "^4.0.1"
+  },
+  "devDependencies": {
     "nodemon": "^3.1.14"
   }
 }
