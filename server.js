@@ -7,7 +7,7 @@ const connectDB = require("./config/db");
 const categoryRoutes = require("./routes/categoryRoutes");
 const uploadRoutes = require("./routes/uploadRoutes");
 const foodRoutes = require("./routes/foodRoutes");
-
+const reservationRoutes = require("./routes/reservationRoutes");
 
 dotenv.config();
 
@@ -32,6 +32,8 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/upload", uploadRoutes);
 
 app.use("/api/foods", foodRoutes);
+
+app.use("/api/reservations", reservationRoutes);
 
 app.get("/", (req, res) => {
   res.json({
