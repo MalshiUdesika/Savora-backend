@@ -3,9 +3,8 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const morgan = require("morgan");
 const userRoutes = require("./routes/userRoutes");
-
-
 const connectDB = require("./config/db");
+const categoryRoutes = require("./routes/categoryRoutes");
 
 dotenv.config();
 
@@ -24,6 +23,8 @@ app.use(morgan("dev"));
 app.use("/uploads", express.static("uploads"));
 
 app.use("/api/users", userRoutes);
+
+app.use("/api/categories", categoryRoutes);
 
 app.get("/", (req, res) => {
   res.json({
