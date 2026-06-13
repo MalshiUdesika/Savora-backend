@@ -2,6 +2,7 @@ const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const morgan = require("morgan");
+const userRoutes = require("./routes/userRoutes");
 
 
 const connectDB = require("./config/db");
@@ -22,6 +23,8 @@ app.use(morgan("dev"));
 
 app.use("/uploads", express.static("uploads"));
 
+app.use("/api/users", userRoutes);
+
 app.get("/", (req, res) => {
   res.json({
     success: true,
@@ -29,7 +32,9 @@ app.get("/", (req, res) => {
   });
 });
 
+
 const PORT = process.env.PORT || 5000;
+
 
 app.listen(PORT, () => {
   console.log(`Server Running on Port ${PORT}`);
