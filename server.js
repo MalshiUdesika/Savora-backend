@@ -5,6 +5,7 @@ const morgan = require("morgan");
 const userRoutes = require("./routes/userRoutes");
 const connectDB = require("./config/db");
 const categoryRoutes = require("./routes/categoryRoutes");
+const uploadRoutes = require("./routes/uploadRoutes");
 
 dotenv.config();
 
@@ -25,6 +26,8 @@ app.use("/uploads", express.static("uploads"));
 app.use("/api/users", userRoutes);
 
 app.use("/api/categories", categoryRoutes);
+
+app.use("/api/upload", uploadRoutes);
 
 app.get("/", (req, res) => {
   res.json({
