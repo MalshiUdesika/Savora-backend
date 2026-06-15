@@ -1,10 +1,73 @@
-import express from "express";
-import { createOrder, getOrders, updateOrderStatusAndNotes } from "../controllers/orderController.js";
+const express =
+require("express");
 
-const orderRouter = express.Router();
+const router =
+express.Router();
 
-orderRouter.post("/",createOrder)
-orderRouter.get("/:pageSize/:pageNumber", getOrders)
-orderRouter.put("/:orderId", updateOrderStatusAndNotes)
+const {
 
-export default orderRouter;
+  createOrder,
+
+  getMyOrders,
+
+  getOrders,
+
+  getOrderById,
+
+  updateOrder,
+
+  deleteOrder
+
+} = require(
+  "../controllers/orderController"
+);
+
+const protect =
+require(
+  "../middleware/jwtMiddleware"
+);
+
+const authorize =
+require(
+  "../middleware/roleMiddleware"
+);
+
+router.post(
+  "/",
+  protect,
+  createOrder
+);
+
+router.get(
+  "/my",
+  protect,
+  getMyOrders
+);
+
+router.get(
+  "/",
+  protect,
+  authorize("admin"),
+  getOrders
+);
+
+router.get(
+  "/:id",
+  protect,
+  getOrderById
+);
+
+router.put(
+  "/:id",
+  protect,
+  authorize("admin"),
+  updateOrder
+);
+
+router.delete(
+  "/:id",
+  protect,
+  deleteOrder
+);
+
+module.exports = router;

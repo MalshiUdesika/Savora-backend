@@ -1,184 +1,366 @@
-import Order from "../models/order.js";
-import { isAdmin } from "./userController.js";
-import Item from "../models/item.js";
+const Order = require("../models/order");
+const Food = require("../models/food");
+const Reservation = require("../models/reservation");
 
-export async function createOrder(req, res) {
-	
-    if (req.user == null) {
-        console.log(req.user)
-        res.status(401).json({ message: "Unauthorized. Please log in to place an order." });
-        return;
-    }
+const createOrder = async (
+  req,
+  res
+) => {
 
-	try {
-		const orderData = {
-			orderId: "ORD000001",
-			firstName: req.body.firstName,
-			lastName: req.body.lastName,
-			addressLine1: req.body.addressLine1,
-			addressLine2: req.body.addressLine2,
-			city: req.body.city,
-			country: req.body.country,
-			email: req.user.email,
-			items: [],
-			phone: req.body.phone,
-			total: 0,
-		};
+  try {
 
-        if(orderData.firstName == ""){
-            orderData.firstName = req.user.firstName
-        }
-        if(orderData.lastName == ""){
-            orderData.lastName = req.user.lastName
-        }
+    const {
+      reservation,
+      foods,
+      paymentMethod
+    } = req.body;
 
-        if(orderData.addressLine1 == ""){
-            res.status(400).json({ message : "Address Line 1 is required" })
-            return
-        }
-        if(orderData.addressLine2 == ""){
-            res.status(400).json({ message : "Address Line 2 is required" })
-            return
-        }
-        if(orderData.city == ""){
-            res.status(400).json({ message : "City is required" })
-            return
-        }
-        if(orderData.country == ""){
-            res.status(400).json({ message : "Country is required" })
-            return
-        }
-    
+    let totalAmount = 0;
 
-		const lastOrder = await Order.findOne().sort({ date: -1 });
+    for (const item of foods) {
 
-		if (lastOrder != null) {
-			const lastOrderId = lastOrder.orderId; //"ORD000029"
+      const food =
+        await Food.findById(
+          item.food
+        );
 
-			const lastOrderNumberInString = lastOrderId.replace("ORD", ""); //"000029"
+      if (!food) {
 
-			const lastOrderNumber = parseInt(lastOrderNumberInString); //29
+        return res.status(404)
+        .json({
+          success: false,
+          message:
+            "Food not found"
+        });
 
-			const newOrderNumber = lastOrderNumber + 1; //30
+      }
 
-			const newOrderNumberInString = newOrderNumber.toString().padStart(6, "0"); //"000030"
-
-			orderData.orderId = "ORD" + newOrderNumberInString; //"ORD000030"
-
-
-		}
-
-        for(let i = 0; i< req.body.items.length; i++){
-
-            const item = req.body.items[i]
-
-            const Item = await Item.findOne({ itemId : item.itemId })
-
-            if(Item == null){
-
-                res.status(404).json({ message : "Item with id " + item.itemId + " not found. Please remove it from your cart and try again." })
-                return
-            }
-
-            if(Item.isVisible == false){
-                res.status(404).json({ message : "Item with id " + item.itemId + " is not available. Please remove it from your cart and try again." })
-                return
-            }
-
-            orderData.items.push({
-                itemId : Item.itemId,
-                name : Item.name,
-                price : Item.price,
-                labelledPrice : Item.labelledPrice,
-                image : Item.images[0],
-                qty : item.qty
-            })
-
-            orderData.total += Item.price * item.qty
-        }
-        
-        const order = new Order(orderData);
-        await order.save();
-
-
-
-        res.status(201).json({ message: "Order created successfully", orderId : orderData.orderId });
-
-	} catch (error) {
-		console.log("Error creating order", error);
-		res.status(500).json({ message: "Error creating order", error: error });
-	}
-
-}
-
-export async function getOrders(req,res){
-
-    if (req.user == null) {
-        res.status(401).json({ message: "Unauthorized. Please log in to view your orders." });
-        return;
-    }
-
-    const pageSizeInString = req.params.pageSize || "10"
-
-    const pageNumberInString = req.params.pageNumber || "1"
-
-    const pageSize = parseInt(pageSizeInString)
-
-    const pageNumber = parseInt(pageNumberInString)
-
-    try{
-
-        if(isAdmin(req)){
-
-            const numberOfOrders = await Order.countDocuments()
-
-            const numberOfPages = Math.ceil(numberOfOrders / pageSize)
-
-            const orders = await Order.find().sort({ date : -1 }).skip((pageNumber - 1) * pageSize).limit(pageSize)
-
-            res.json({
-                orders : orders,
-                totalPages : numberOfPages
-            })
-        }else{
-            const numberOfOrders = await Order.countDocuments()
-
-            const numberOfPages = Math.ceil(numberOfOrders / pageSize)
-
-            const orders = await Order.find({email : req.user.email}).sort({ date : -1 }).skip((pageNumber - 1) * pageSize).limit(pageSize)
-
-            res.json({
-                orders : orders,
-                totalPages : numberOfPages
-            })
-        }
-
-}   catch(error){
-        console.log("Error fetching orders", error)
-        res.status(500).json({ message : "Error fetching orders", error : error })
-    }
-
-}
-
-export async function updateOrderStatusAndNotes(req,res){
-
-    if(isAdmin(req)){
-
-        const orderId = req.params.orderId
-        try{
-
-            await Order.updateOne({ orderId : orderId }, { status : req.body.status, notes : req.body.notes })
-
-            res.json({ message : "Order status and notes updated successfully" })
-
-        }catch(error){
-            console.log("Error updating order status and notes", error)
-            res.status(500).json({ message : "Error updating order status and notes", error : error })
-            return
-        }       
+      totalAmount +=
+        food.price *
+        item.quantity;
 
     }
-    else{
-        res.status(403).json({ message : "Forbidden. Only admins can update order status and notes." })
+
+    const order =
+      await Order.create({
+
+        user:
+          req.user._id,
+
+        reservation,
+
+        foods,
+
+        totalAmount,
+
+        paymentMethod
+
+      });
+
+    res.status(201).json({
+
+      success: true,
+
+      message:
+        "Order created successfully",
+
+      order
+
+    });
+
+  } catch (error) {
+
+    res.status(500).json({
+
+      success: false,
+
+      message:
+        error.message
+
+    });
+
+  }
+
+};
+
+const getMyOrders = async (
+  req,
+  res
+) => {
+
+  try {
+
+    const orders =
+      await Order.find({
+
+        user:
+          req.user._id
+
+      })
+
+      .populate(
+        "foods.food",
+        "name price image"
+      )
+
+      .populate(
+        "reservation"
+      )
+
+      .sort({
+        createdAt: -1
+      });
+
+    res.json({
+
+      success: true,
+
+      orders
+
+    });
+
+  } catch (error) {
+
+    res.status(500).json({
+
+      success: false,
+
+      message:
+        error.message
+
+    });
+
+  }
+
+};
+
+const getOrders = async (
+  req,
+  res
+) => {
+
+  try {
+
+    const orders =
+      await Order.find()
+
+      .populate(
+        "user",
+        "firstName lastName email"
+      )
+
+      .populate(
+        "foods.food",
+        "name price"
+      )
+
+      .sort({
+        createdAt: -1
+      });
+
+    res.json({
+
+      success: true,
+
+      count:
+        orders.length,
+
+      orders
+
+    });
+
+  } catch (error) {
+
+    res.status(500).json({
+
+      success: false,
+
+      message:
+        error.message
+
+    });
+
+  }
+
+};
+
+const getOrderById = async (
+  req,
+  res
+) => {
+
+  try {
+
+    const order =
+      await Order.findById(
+        req.params.id
+      )
+
+      .populate(
+        "user",
+        "firstName lastName email"
+      )
+
+      .populate(
+        "foods.food"
+      )
+
+      .populate(
+        "reservation"
+      );
+
+    if (!order) {
+
+      return res.status(404)
+      .json({
+
+        success: false,
+
+        message:
+          "Order not found"
+
+      });
+
     }
-}
+
+    res.json({
+
+      success: true,
+
+      order
+
+    });
+
+  } catch (error) {
+
+    res.status(500).json({
+
+      success: false,
+
+      message:
+        error.message
+
+    });
+
+  }
+
+};
+
+const updateOrder = async (
+  req,
+  res
+) => {
+
+  try {
+
+    const order =
+      await Order.findById(
+        req.params.id
+      );
+
+    if (!order) {
+
+      return res.status(404)
+      .json({
+
+        success: false,
+
+        message:
+          "Order not found"
+
+      });
+
+    }
+
+    order.status =
+      req.body.status ||
+      order.status;
+
+    await order.save();
+
+    res.json({
+
+      success: true,
+
+      message:
+        "Order updated",
+
+      order
+
+    });
+
+  } catch (error) {
+
+    res.status(500).json({
+
+      success: false,
+
+      message:
+        error.message
+
+    });
+
+  }
+
+};
+
+const deleteOrder = async (
+  req,
+  res
+) => {
+
+  try {
+
+    const order =
+      await Order.findById(
+        req.params.id
+      );
+
+    if (!order) {
+
+      return res.status(404)
+      .json({
+
+        success: false,
+
+        message:
+          "Order not found"
+
+      });
+
+    }
+
+    await order.deleteOne();
+
+    res.json({
+
+      success: true,
+
+      message:
+        "Order cancelled"
+
+    });
+
+  } catch (error) {
+
+    res.status(500).json({
+
+      success: false,
+
+      message:
+        error.message
+
+    });
+
+  }
+
+};
+
+module.exports = {
+  createOrder,
+  getMyOrders,
+  getOrders,
+  getOrderById,
+  updateOrder,
+  deleteOrder
+};

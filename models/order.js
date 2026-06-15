@@ -1,92 +1,73 @@
-import mongoose from 'mongoose';
+const mongoose = require("mongoose");
 
-const orderSchema = new mongoose.Schema({
+const orderSchema = new mongoose.Schema(
 
-    orderId : {
-        type : String,
-        required : true,
-        unique : true
+  {
+
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true
     },
-    firstName : {
-        type : String,
-        required : true
+
+    reservation: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Reservation"
     },
-    lastName : {
-        type : String,
-        required : true
+
+    foods: [
+      {
+        food: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Food",
+          required: true
+        },
+
+        quantity: {
+          type: Number,
+          required: true,
+          min: 1
+        }
+      }
+    ],
+
+    totalAmount: {
+      type: Number,
+      required: true
     },
-    addressLine1 : {
-        type : String,
-        required : true
+
+    paymentMethod: {
+      type: String,
+      enum: [
+        "cash",
+        "card"
+      ],
+      default: "cash"
     },
-    addressLine2 : {
-        type : String,
-    },
-    city : {
-        type : String,
-        required : true
-    },
-    country : {
-        type : String,
-        required : true,
-        default : "Sri Lanka"
-    },
-    email : {
-        type : String,
-        required : true
-    },
-    phone : {
-        type : String,
-        required : true
-    },
-    items : {
-        type : [
-            {
-                itemId : {
-                    type : String,
-                    required : true
-                },
-                name : {
-                    type : String,
-                    required : true
-                },
-                labelledPrice : {
-                    type : Number,
-                },
-                price : {
-                    type : Number,
-                    required : true
-                },
-                image : {
-                    type : String,
-                    default : "https://via.placeholder.com/150"
-                },
-                qty : {
-                    type : Number,
-                    required : true
-                }
-            }
-        ]
-    },
-    total : {
-        type : Number,
-        required : true
-    },
-    status : {
-        type : String,
-        required : true,
-        default : "Pending"
-    },
-    date :{
-        type : Date,
-        default : Date.now
-    },
-    notes : {
-        type : String,
+
+    status: {
+      type: String,
+      enum: [
+        "pending",
+        "confirmed",
+        "preparing",
+        "ready",
+        "completed",
+        "cancelled"
+      ],
+      default: "pending"
     }
-})
 
+  },
 
-const Order = mongoose.model("Order",orderSchema)
+  {
+    timestamps: true
+  }
 
-export default Order;
+);
+
+module.exports =
+mongoose.model(
+  "Order",
+  orderSchema
+);

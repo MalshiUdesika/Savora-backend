@@ -8,6 +8,8 @@ const categoryRoutes = require("./routes/categoryRoutes");
 const uploadRoutes = require("./routes/uploadRoutes");
 const foodRoutes = require("./routes/foodRoutes");
 const reservationRoutes = require("./routes/reservationRoutes");
+const orderRoutes = require("./routes/orderRoutes");
+
 
 dotenv.config();
 
@@ -34,6 +36,8 @@ app.use("/api/upload", uploadRoutes);
 app.use("/api/foods", foodRoutes);
 
 app.use("/api/reservations", reservationRoutes);
+
+app.use("/api/orders", orderRoutes);
 
 app.get("/", (req, res) => {
   res.json({
